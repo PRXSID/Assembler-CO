@@ -64,18 +64,31 @@ register = {
 
 def read_instructions(filename="input2.txt"):
     instructions = []
+    labels = {}
+
     try:
         with open(filename, 'r') as f:
-            for line in f:
+            for line_num, line in enumerate(f):
                 line = line.strip()
+
+                label = None
+                if ':' in line:
+                    label, line = line.split(':', 1)
+                    label = label.strip()
+                    line = line.strip()
+                    labels[label] = line_num
+                
                 if not line:
-                    continue
-                parts = line.replace(',', ' ').split()
+                    continue  
+
+                parts = line.replace(',', ' ').replace(')', " ").replace('(', " ").split()
                 instructions.append(parts)
-        return instructions
+
+        return instructions, labels
+
     except FileNotFoundError:
         print("Error: File not found. Please check the filename and try again.")
-        return []
+        return [], {}
 
 def encode_r_type(instruction, rd, rs1, rs2):
     
