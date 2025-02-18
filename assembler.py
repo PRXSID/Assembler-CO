@@ -155,20 +155,20 @@ def encode_b_type(instruction, rd, rs1, val, label, counter):
     funct3 = b_type_instructions[instruction]["funct3"]
     opcode = b_type_instructions[instruction]["opcode"]
 
-    rd= register[rd]
-    rs1= register[rs1]
+    rd_bin = register[rd]
+    rs1_bin = register[rs1]
 
     if val in label:
         imm = (to_twos_complement(int(label[val]) - int(counter), 13))
     else:
         imm = (to_twos_complement(int(val), 13))
 
-    imm_12 = imm[12]
-    imm_10_5 = imm[1:7]
-    imm_4_1 = imm[7:11]
-    imm_11 = imm[11]
+    imm_12 = imm[0]
+    imm_10_5 = imm[2:8]
+    imm_4_1 = imm[8:12]
+    imm_11 = imm[1]
 
-    binary_instruction = imm_12 + imm_10_5 + rs1 + rd + funct3 + imm_4_1 + imm_11 + opcode
+    binary_instruction = imm_12 + imm_10_5 + rs1_bin + rd_bin + funct3 + imm_4_1 + imm_11 + opcode
     
     return binary_instruction
 
