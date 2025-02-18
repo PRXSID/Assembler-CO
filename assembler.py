@@ -142,4 +142,14 @@ def encode_s_type(instruction, rs1, rs2, imm):
     return binary_instruction
 
 
+def encode_j_type(instruction, rd, imm):
+
+    
+    opcode = j_type_instructions[instruction]["opcode"]
+    rd = register[rd]
+    imm = to_twos_complement(int(imm), 21)
+    binary_instruction = imm[0:20] + rd + opcode
+    return binary_instruction
+
+
 
