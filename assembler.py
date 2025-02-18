@@ -79,9 +79,6 @@ def read_instructions(filename="input2.txt"):
 
 def encode_r_type(instruction, rd, rs1, rs2):
     
-    if rd not in register or rs1 not in register or rs2 not in register:
-        return "Error: Invalid register name"
-    
     funct7 = r_type_instructions[instruction]["funct7"]
     funct3 = r_type_instructions[instruction]["funct3"]
     opcode = r_type_instructions[instruction]["opcode"]
@@ -94,12 +91,4 @@ def encode_r_type(instruction, rd, rs1, rs2):
     
     return binary_instruction
 
-def process_instructions():
-    instructions = read_instructions()
-    for instr in instructions:
-        if len(instr) == 4:
-            instruction, rd, rs1, rs2 = instr
-            binary= encode_r_type(instruction, rd, rs1, rs2)
-            print(binary)
 
-process_instructions()
