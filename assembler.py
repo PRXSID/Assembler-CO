@@ -62,6 +62,14 @@ register = {
     't6':   '11111',
 }
 
+def to_twos_complement(value, bit_width):
+    
+    if value >= 0:
+        binary_representation = format(value, '0{}b'.format(bit_width))
+    else:
+        binary_representation = format((1 << bit_width) + value, '0{}b'.format(bit_width))
+    return binary_representation
+
 def read_instructions(filename="input2.txt"):
     instructions = []
     labels = {}
