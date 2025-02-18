@@ -172,4 +172,36 @@ def encode_b_type(instruction, rd, rs1, val, label, counter):
     
     return binary_instruction
 
+def main():
+    instructions, labels = read_instructions()
+    for counter, instr in enumerate(instructions):
+        if not instr:
+            continue
+        
+        instruction = instr[0]
+        if instruction in r_type_instructions and len(instr) == 4:
+            _, rd, rs1, rs2 = instr
+            print(encode_r_type(instruction, rd, rs1, rs2))
+        
+        elif instruction in i_type_instructions and len(instr) == 4:
+            _, rd, rs1, imm = instr
+            print(encode_i_type(instruction, rd, rs1, imm))
+        
+        elif instruction in s_type_instructions and len(instr) == 4:
+            _, rs2, imm, rs1 = instr
+            print(encode_s_type(instruction, rs1, rs2, imm))
+        
+        elif instruction in b_type_instructions and len(instr) == 4:
+            _, rs1, rs2, val = instr
+            print(encode_b_type(instruction, rs1, rs2, val, labels, counter))
+        
+        elif instruction in j_type_instructions and len(instr) == 3:
+            _, rd, imm = instr
+            print(encode_j_type(instruction, rd, imm))
+        
+        else:
+            print(f"Error: Unknown or incorrectly formatted instruction {instr}")
+
+if __name__ == "__main__":
+    main()
 
