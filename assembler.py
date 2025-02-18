@@ -120,7 +120,7 @@ def encode_i_type(instruction, rd, rs1, imm):
         rs1= register[rs1]
         imm=to_twos_complement(int(imm), 12)
         
-        binary_instruction = imm[0:11]+ rs1+ funct3 + rd + opcode
+        binary_instruction = imm[0:12]+ rs1+ funct3 + rd + opcode
         
         return binary_instruction
 
