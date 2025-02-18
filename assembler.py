@@ -62,14 +62,6 @@ register = {
     't6':   '11111',
 }
 
-def to_twos_complement(value, bit_width):
-    
-    if value >= 0:
-        binary_representation = format(value, '0{}b'.format(bit_width))
-    else:
-        binary_representation = format((1 << bit_width) + value, '0{}b'.format(bit_width))
-    return binary_representation
-
 def read_instructions(filename="input2.txt"):
     instructions = []
     labels = {}
@@ -98,18 +90,56 @@ def read_instructions(filename="input2.txt"):
         print("Error: File not found. Please check the filename and try again.")
         return [], {}
 
+def to_twos_complement(value, bit_width):
+    
+    if value >= 0:
+        binary_representation = format(value, '0{}b'.format(bit_width))
+    else:
+        binary_representation = format((1 << bit_width) + value, '0{}b'.format(bit_width))
+    return binary_representation
+
 def encode_r_type(instruction, rd, rs1, rs2):
     
     funct7 = r_type_instructions[instruction]["funct7"]
     funct3 = r_type_instructions[instruction]["funct3"]
     opcode = r_type_instructions[instruction]["opcode"]
     
-    rd_bin = register[rd]
-    rs1_bin = register[rs1]
-    rs2_bin = register[rs2]
+    rd= register[rd]
+    rs1= register[rs1]
+    rs2= register[rs2]
     
-    binary_instruction = funct7 + rs2_bin + rs1_bin + funct3 + rd_bin + opcode
+    binary_instruction = funct7 + rs2 + rs1+ funct3 + rd+ opcode
     
     return binary_instruction
+
+def encode_i_type(instruction, rd, rs1, imm):
+        funct3 = i_type_instructions[instruction]["funct3"]
+        opcode = i_type_instructions[instruction]["opcode"]
+        
+        rd = register[rd]
+        rs1= register[rs1]
+        imm=to_twos_complement(int(imm), 12)
+        
+        binary_instruction = imm[0:11]+ rs1+ funct3 + rd + opcode
+        
+        return binary_instruction
+
+
+
+
+def encode_s_type(instruction, rs1, rs2, imm):
+    
+    funct3 = s_type_instructions[instruction]["funct3"]
+    opcode = s_type_instructions[instruction]["opcode"]
+
+    rs1= register[rs1]
+    rs2= register[rs2]
+    imm=to_twos_complement(int(imm), 12)
+
+
+    binary_instruction = imm[0:7] + rs2+ rs1+ funct3 + imm[7:11] + opcode
+
+    return binary_instruction
+
 
 
