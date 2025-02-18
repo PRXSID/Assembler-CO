@@ -27,3 +27,14 @@ j_type_instructions = {
     "jal": {"opcode": "1101111"}
 }
 
+def read():
+    lst = []
+    x = input("Enter input file: ")
+    with open(x,'r') as f:
+        for i in f:
+            lst.append(i)
+    return lst
+
+
+
+read()
