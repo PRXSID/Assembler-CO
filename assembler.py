@@ -27,17 +27,6 @@ j_type_instructions = {
     "jal": {"opcode": "1101111"}
 }
 
-def read():
-    lst = []
-    x = input("Enter input file: ")
-    with open(x,'r') as f:
-        for i in f:
-            lst.append(i)
-    return lst
-
-
-
-read()
 register = {
     'zero': '00000',
     'ra':   '00001',
@@ -65,10 +54,52 @@ register = {
     's7':   '10111',
     's8':   '11000',
     's9':   '11001',
-    's10':   '11010',
-    's11':   '11011',
+    's10':  '11010',
+    's11':  '11011',
     't3':   '11100',
     't4':   '11101',
     't5':   '11110',
     't6':   '11111',
 }
+
+def read_instructions(filename="input2.txt"):
+    instructions = []
+    try:
+        with open(filename, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                parts = line.replace(',', ' ').split()
+                instructions.append(parts)
+        return instructions
+    except FileNotFoundError:
+        print("Error: File not found. Please check the filename and try again.")
+        return []
+
+def encode_r_type(instruction, rd, rs1, rs2):
+    
+    if rd not in register or rs1 not in register or rs2 not in register:
+        return "Error: Invalid register name"
+    
+    funct7 = r_type_instructions[instruction]["funct7"]
+    funct3 = r_type_instructions[instruction]["funct3"]
+    opcode = r_type_instructions[instruction]["opcode"]
+    
+    rd_bin = register[rd]
+    rs1_bin = register[rs1]
+    rs2_bin = register[rs2]
+    
+    binary_instruction = funct7 + rs2_bin + rs1_bin + funct3 + rd_bin + opcode
+    
+    return binary_instruction
+
+def process_instructions():
+    instructions = read_instructions()
+    for instr in instructions:
+        if len(instr) == 4:
+            instruction, rd, rs1, rs2 = instr
+            binary= encode_r_type(instruction, rd, rs1, rs2)
+            print(binary)
+
+process_instructions()
