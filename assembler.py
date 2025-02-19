@@ -159,14 +159,18 @@ def encode_s_type(instruction, rs1, imm,rs2):
 
 
 def encode_j_type(instruction, rd, imm):
-    
     opcode = j_type_instructions[instruction]["opcode"]
     rd = register[rd]
     imm = to_twos_complement(int(imm), 21)
     if imm is None:
         return
-    binary_instruction = imm[0:20] + rd + opcode
+    imm_20 = imm[0]                   
+    imm_10_1 = imm[10:0:-1]            
+    imm_11 = imm[11]                 
+    imm_19_12 = imm[19:11:-1]          
+    binary_instruction = imm_20 + imm_10_1 + imm_11 + imm_19_12 + rd + opcode
     return binary_instruction
+
 
 def encode_b_type(instruction, rd, rs1, val, label, counter):
     funct3 = b_type_instructions[instruction]["funct3"]
