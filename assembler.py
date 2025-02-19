@@ -1,3 +1,4 @@
+
 r_type_instructions = {
     "add": {"funct7": "0000000", "funct3": "000", "opcode": "0110011"},
     "sub": {"funct7": "0100000", "funct3": "000", "opcode": "0110011"},
@@ -63,7 +64,7 @@ register = {
 }
 
 def syntax_error(instruction):
-    if type(instruction[2]) == str or type(instruction[3] == int) :
+    if instruction[2].isalpha() == True or instruction[3].isalpha() == False:
         return 0
     return 1
     
@@ -109,7 +110,6 @@ def to_twos_complement(value, bit_width):
     max_val = (1 << (bit_width - 1)) - 1
     
     if value < min_val or value > max_val:
-        print(f"Error: Immediate {value} out of range for {bit_width}-bit field.")
         return None
     
     if value >= 0:
@@ -118,6 +118,12 @@ def to_twos_complement(value, bit_width):
         binary_representation = format((1 << bit_width) + value, '0{}b'.format(bit_width))
     
     return binary_representation
+
+
+def validate_register(reg, line_num):
+    if reg not in register:
+        return False
+    return True
 
 
 def encode_r_type(instruction, rd, rs1, rs2):
@@ -144,7 +150,7 @@ def encode_i_type(instruction, rd, rs1, imm):
     
     imm=to_twos_complement(int(imm), 12)
     if imm is None:
-        return
+        return None
     
     binary_instruction = imm[0:12]+ rs1_+ funct3 + rd + opcode
         
@@ -159,7 +165,7 @@ def encode_s_type(instruction, rs1, imm,rs2):
     rs2= register[rs2]
     imm=to_twos_complement(int(imm), 12)
     if imm is None:
-        return
+        return None
 
     binary_instruction = imm[0:7] + rs2+ rs1+ funct3 + imm[7:] + opcode
 
@@ -178,7 +184,7 @@ def encode_j_type(instruction, rd, label, val, counter):
         imm = to_twos_complement(int(val), 21)
         
     if imm is None:
-        raise ValueError("Invalid immediate value")
+        return None
 
     imm_20 = imm[0]                    
     imm_10_1 = imm[10:20]               
@@ -203,7 +209,7 @@ def encode_b_type(instruction, rd, rs1, val, label, counter):
         imm = (to_twos_complement(int(val), 13))
 
     if imm is None:
-        return
+        return None
 
     imm_12 = imm[0]
     imm_10_5 = imm[2:8]
@@ -219,41 +225,83 @@ def main():
     filename = input("Enter input filename: ")
     instructions, labels = read_instructions(filename)
     binary_instructions = []
+    error_line = None
     
     for counter, instr in enumerate(instructions):
         if not instr:
             continue
         
         operation = instr[0]
-        if operation not in r_type_instructions and operation not in i_type_instructions and operation not in s_type_instructions and operation not in j_type_instructions and operation not in b_type_instructions:
-            print("Error: Wrong instruction")
         
         if operation in r_type_instructions:
+            if len(instr) != 4:
+                error_line = counter + 1
+                break
             rd, rs1, rs2 = instr[1], instr[2], instr[3]
+            if not all(validate_register(reg, counter + 1) for reg in (rd, rs1, rs2)):
+                error_line = counter + 1
+                return error_line
             binary_instructions.append(encode_r_type(operation, rd, rs1, rs2))
         
         elif operation in i_type_instructions:
             if operation == "lw":
-                if syntax_error(instr) == 0: return counter + 1 
+                if len(instr) != 4 or syntax_error(instr) == 0:
+                    error_line = counter + 1
+                    break
                 rd, imm, rs1 = instr[1], instr[2], instr[3]
+                if not all(validate_register(reg, counter + 1) for reg in (rd, rs1)):
+                    error_line = counter + 1
+                    return error_line  
             else:
+                if len(instr) != 4:
+                    error_line = counter + 1
+                    break
                 rd, rs1, imm = instr[1], instr[2], instr[3]
+                if not all(validate_register(reg, counter + 1) for reg in (rd, rs1)):
+                    error_line = counter + 1
+                    return error_line  
             binary_instructions.append(encode_i_type(operation, rd, rs1, imm))
-
+        
         elif operation in s_type_instructions:
-            if syntax_error(instr) == 0: return counter + 1
+            if len(instr) != 4 or syntax_error(instr) == 0:
+                print(instr)
+                error_line = counter + 1
+                break
             rs2, imm, rs1 = instr[1], instr[2], instr[3]
+            if not all(validate_register(reg, counter + 1) for reg in (rs1, rs2)):
+                error_line = counter + 1
+                return error_line  
             binary_instructions.append(encode_s_type(operation, rs1, imm, rs2))
         
         elif operation in j_type_instructions:
+            if len(instr) != 3:
+                error_line = counter + 1
+                break
             rd, val = instr[1], instr[2]
+            if not validate_register(rd, counter + 1):
+                error_line = counter + 1
+                return error_line  
             binary_instructions.append(encode_j_type(operation, rd, labels, val, counter))
         
         elif operation in b_type_instructions:
+            if len(instr) != 4:
+                error_line = counter + 1
+                break
             rd, rs1, val = instr[1], instr[2], instr[3]
+            if not all(validate_register(reg, counter + 1) for reg in (rd, rs1)):
+                error_line = counter + 1
+                return error_line  
             binary_instructions.append(encode_b_type(operation, rd, rs1, val, labels, counter))
-    
+
+        else:
+            return counter + 1
+        
+        if binary_instructions[counter] is None:
+            error_line = counter + 1
+            return error_line
+        
+
     return binary_instructions
 
-writer(main())
-
+output = main()
+writer(output)
