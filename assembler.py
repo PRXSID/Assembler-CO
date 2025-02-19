@@ -62,7 +62,7 @@ register = {
     't6':   '11111',
 }
 
-def read_instructions(filename):
+def read_instructions(filename="input2.txt"):
     instructions = []
     labels = {}
 
@@ -83,6 +83,7 @@ def read_instructions(filename):
 
                 parts = line.replace(',', ' ').replace(')', '').replace('(', ' ').split()
                 instructions.append(parts)
+        print(instructions)
 
         return instructions, labels
 
@@ -155,18 +156,29 @@ def encode_s_type(instruction, rs1, imm,rs2):
     return binary_instruction
 
 
-def encode_j_type(instruction, rd, imm):
+def encode_j_type(instruction, rd, label, val, counter):
     opcode = j_type_instructions[instruction]["opcode"]
     rd = register[rd]
-    imm = to_twos_complement(int(imm), 21)
+
+    counter = int(counter)
+    if val in label:
+        offset = (int(label[val]) - (counter + 1)) * 4  
+        imm = to_twos_complement(offset, 21)  
+    else:
+        imm = to_twos_complement(int(val), 21)
+        
     if imm is None:
-        return
-    imm_20 = imm[0]                   
-    imm_10_1 = imm[10:0:-1]            
-    imm_11 = imm[9]                 
-    imm_19_12 = imm[19:11:-1]          
-    binary_instruction = imm_20 + imm_10_1 + imm_11 + imm_19_12 + rd + opcode
+        raise ValueError("Invalid immediate value")
+
+    imm_20 = imm[0]                    
+    imm_10_1 = imm[10:20]               
+    imm_11 = imm[9]                    
+    imm_19_12 = imm[1:9]                
+
+    binary_instruction = imm_20 + imm_10_1 + imm_11 + imm_19_12  + rd + opcode
     return binary_instruction
+
+
 
 def encode_b_type(instruction, rd, rs1, val, label, counter):
     funct3 = b_type_instructions[instruction]["funct3"]
@@ -224,8 +236,8 @@ def main():
             binary_instructions.append(encode_s_type(operation, rs1, imm, rs2))
         
         elif operation in j_type_instructions:
-            rd, imm = instr[1], instr[2]
-            binary_instructions.append(encode_j_type(operation, rd, imm))
+            rd, val = instr[1], instr[2]
+            binary_instructions.append(encode_j_type(operation, rd, labels, val, counter))
         
         elif operation in b_type_instructions:
             rd, rs1, val = instr[1], instr[2], instr[3]
