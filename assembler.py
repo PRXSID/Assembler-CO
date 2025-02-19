@@ -68,7 +68,7 @@ def read_instructions(filename="input2.txt"):
 
     try:
         with open(filename, 'r') as f:
-            for line_num, line in enumerate(f):
+            for line_num,line in enumerate(f):
                 line = line.strip()
 
                 label = None
@@ -76,13 +76,14 @@ def read_instructions(filename="input2.txt"):
                     label, line = line.split(':', 1)
                     label = label.strip()
                     line = line.strip()
-                    labels[label] = line_num
+                    labels[label] = line_num +1
                 
                 if not line:
                     continue  
 
                 parts = line.replace(',', ' ').replace(')', " ").replace('(', " ").split()
                 instructions.append(parts)
+        print (instructions)
 
         return instructions, labels
 
@@ -127,7 +128,7 @@ def encode_i_type(instruction, rd, rs1, imm):
 
 
 
-def encode_s_type(instruction, rs1, rs2, imm):
+def encode_s_type(instruction, rs1, imm,rs2):
     
     funct3 = s_type_instructions[instruction]["funct3"]
     opcode = s_type_instructions[instruction]["opcode"]
@@ -137,7 +138,7 @@ def encode_s_type(instruction, rs1, rs2, imm):
     imm=to_twos_complement(int(imm), 12)
 
 
-    binary_instruction = imm[0:7] + rs2+ rs1+ funct3 + imm[7:11] + opcode
+    binary_instruction = imm[0:7] + rs2+ rs1+ funct3 + imm[7:] + opcode
 
     return binary_instruction
 
@@ -159,7 +160,9 @@ def encode_b_type(instruction, rd, rs1, val, label, counter):
     rs1_bin = register[rs1]
 
     if val in label:
-        imm = (to_twos_complement(int(label[val]) - int(counter), 13))
+        imm = (to_twos_complement(4*((int(label[val]) - int(counter+1))), 13))
+        print(label[val])
+        print(counter)
     else:
         imm = (to_twos_complement(int(val), 13))
 
@@ -167,41 +170,46 @@ def encode_b_type(instruction, rd, rs1, val, label, counter):
     imm_10_5 = imm[2:8]
     imm_4_1 = imm[8:12]
     imm_11 = imm[1]
+    
 
     binary_instruction = imm_12 + imm_10_5 + rs1_bin + rd_bin + funct3 + imm_4_1 + imm_11 + opcode
     
     return binary_instruction
 
 def main():
-    instructions, labels = read_instructions()
+    filename = "input2.txt"
+    instructions, labels = read_instructions(filename)
+    binary_instructions = []
+    
     for counter, instr in enumerate(instructions):
         if not instr:
             continue
         
-        instruction = instr[0]
-        if instruction in r_type_instructions and len(instr) == 4:
-            _, rd, rs1, rs2 = instr
-            print(encode_r_type(instruction, rd, rs1, rs2))
+        operation = instr[0]
         
-        elif instruction in i_type_instructions and len(instr) == 4:
-            _, rd, rs1, imm = instr
-            print(encode_i_type(instruction, rd, rs1, imm))
+        if operation in r_type_instructions:
+            rd, rs1, rs2 = instr[1], instr[2], instr[3]
+            binary_instructions.append(encode_r_type(operation, rd, rs1, rs2))
         
-        elif instruction in s_type_instructions and len(instr) == 4:
-            _, rs2, imm, rs1 = instr
-            print(encode_s_type(instruction, rs1, rs2, imm))
+        elif operation in i_type_instructions:
+            rd, rs1, imm = instr[1], instr[2], instr[3]
+            binary_instructions.append(encode_i_type(operation, rd, rs1, imm))
         
-        elif instruction in b_type_instructions and len(instr) == 4:
-            _, rs1, rs2, val = instr
-            print(encode_b_type(instruction, rs1, rs2, val, labels, counter))
+        elif operation in s_type_instructions:
+            rs2, imm, rs1 = instr[1], instr[2], instr[3]
+            binary_instructions.append(encode_s_type(operation, rs1, imm, rs2))
         
-        elif instruction in j_type_instructions and len(instr) == 3:
-            _, rd, imm = instr
-            print(encode_j_type(instruction, rd, imm))
+        elif operation in j_type_instructions:
+            rd, imm = instr[1], instr[2]
+            binary_instructions.append(encode_j_type(operation, rd, imm))
+        
+        elif operation in b_type_instructions:
+            rd, rs1, val = instr[1], instr[2], instr[3]
+            binary_instructions.append(encode_b_type(operation, rd, rs1, val, labels, counter))
         
         else:
-            print(f"Error: Unknown or incorrectly formatted instruction {instr}")
-
-if __name__ == "__main__":
-    main()
-
+            print(f"Error: Unsupported instruction '{operation}'")
+    
+    for binary in binary_instructions:
+        print(binary)
+main()
