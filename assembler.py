@@ -62,6 +62,11 @@ register = {
     't6':   '11111',
 }
 
+def syntax_error(instruction):
+    if type(instruction[2]) == str or type(instruction[3] == int) :
+        return 0
+    return 1
+    
 def read_instructions(filename="input2.txt"):
     instructions = []
     labels = {}
@@ -83,13 +88,21 @@ def read_instructions(filename="input2.txt"):
 
                 parts = line.replace(',', ' ').replace(')', '').replace('(', ' ').split()
                 instructions.append(parts)
-        print(instructions)
 
         return instructions, labels
 
     except FileNotFoundError:
         print("Error: File not found. Please check the filename and try again.")
         return [], {}
+    
+def writer(binary_instructions):
+    out = input("Enter output filename: ")
+    with open(out,'w') as f:
+        if type(binary_instructions) == list:
+            for binary in binary_instructions:
+                f.write(f"{binary}\n")
+        else:
+            f.write(f"Error in line {binary_instructions}\n")
 
 def to_twos_complement(value, bit_width):
     min_val = -(1 << (bit_width - 1))
@@ -108,8 +121,6 @@ def to_twos_complement(value, bit_width):
 
 
 def encode_r_type(instruction, rd, rs1, rs2):
-    if rd not in register or rs1 not in register or rs2 not in register:
-        return "Error: Invalid register"
     
     
     funct7 = r_type_instructions[instruction]["funct7"]
@@ -125,8 +136,6 @@ def encode_r_type(instruction, rd, rs1, rs2):
     return binary_instruction
 
 def encode_i_type(instruction, rd, rs1, imm):
-    if rd not in register or rs1 not in register:
-        return "Error: Invalid register"
     funct3 = i_type_instructions[instruction]["funct3"]
     opcode = i_type_instructions[instruction]["opcode"]
        
@@ -141,12 +150,7 @@ def encode_i_type(instruction, rd, rs1, imm):
         
     return binary_instruction
 
-
-
-
 def encode_s_type(instruction, rs1, imm,rs2):
-    if rs1 not in register or rs2 not in register:
-        return "Error: Invalid register"
     
     funct3 = s_type_instructions[instruction]["funct3"]
     opcode = s_type_instructions[instruction]["opcode"]
@@ -163,8 +167,6 @@ def encode_s_type(instruction, rs1, imm,rs2):
 
 
 def encode_j_type(instruction, rd, label, val, counter):
-    if rd not in register:
-        return "Error: Invalid register"
     opcode = j_type_instructions[instruction]["opcode"]
     rd = register[rd]
 
@@ -189,8 +191,6 @@ def encode_j_type(instruction, rd, label, val, counter):
 
 
 def encode_b_type(instruction, rd, rs1, val, label, counter):
-    if rd not in register or rs1 not in register:
-        return "Error: Invalid register"
     funct3 = b_type_instructions[instruction]["funct3"]
     opcode = b_type_instructions[instruction]["opcode"]
 
@@ -217,7 +217,6 @@ def encode_b_type(instruction, rd, rs1, val, label, counter):
 
 def main():
     filename = input("Enter input filename: ")
-    out = input("Enter output filename: ")
     instructions, labels = read_instructions(filename)
     binary_instructions = []
     
@@ -234,14 +233,15 @@ def main():
             binary_instructions.append(encode_r_type(operation, rd, rs1, rs2))
         
         elif operation in i_type_instructions:
-            if operation == "lw":  
+            if operation == "lw":
+                if syntax_error(instr) == 0: return counter + 1 
                 rd, imm, rs1 = instr[1], instr[2], instr[3]
             else:
                 rd, rs1, imm = instr[1], instr[2], instr[3]
             binary_instructions.append(encode_i_type(operation, rd, rs1, imm))
 
-        
         elif operation in s_type_instructions:
+            if syntax_error(instr) == 0: return counter + 1
             rs2, imm, rs1 = instr[1], instr[2], instr[3]
             binary_instructions.append(encode_s_type(operation, rs1, imm, rs2))
         
@@ -252,8 +252,8 @@ def main():
         elif operation in b_type_instructions:
             rd, rs1, val = instr[1], instr[2], instr[3]
             binary_instructions.append(encode_b_type(operation, rd, rs1, val, labels, counter))
-        
-    with open(out,'w') as f:
-        for binary in binary_instructions:
-            f.write(f"{binary}\n")
-main()
+    
+    return binary_instructions
+
+writer(main())
+
