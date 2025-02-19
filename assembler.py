@@ -92,14 +92,26 @@ def read_instructions(filename="input2.txt"):
         return [], {}
 
 def to_twos_complement(value, bit_width):
+    min_val = -(1 << (bit_width - 1))
+    max_val = (1 << (bit_width - 1)) - 1
+    
+    if value < min_val or value > max_val:
+        print(f"Error: Immediate {value} out of range for {bit_width}-bit field.")
+        return None
     
     if value >= 0:
         binary_representation = format(value, '0{}b'.format(bit_width))
     else:
         binary_representation = format((1 << bit_width) + value, '0{}b'.format(bit_width))
+    
     return binary_representation
 
+
 def encode_r_type(instruction, rd, rs1, rs2):
+    if rd not in register or rs1 not in register or rs2 not in register:
+        print("PLS ENTER VALID REGISTER")
+        return
+    
     
     funct7 = r_type_instructions[instruction]["funct7"]
     funct3 = r_type_instructions[instruction]["funct3"]
@@ -114,21 +126,31 @@ def encode_r_type(instruction, rd, rs1, rs2):
     return binary_instruction
 
 def encode_i_type(instruction, rd, rs1, imm):
-        funct3 = i_type_instructions[instruction]["funct3"]
-        opcode = i_type_instructions[instruction]["opcode"]
+    if rd not in register or rs1 not in register:
+        print("PLS ENTER VALID REGISTER")
+        return
+    
+    funct3 = i_type_instructions[instruction]["funct3"]
+    opcode = i_type_instructions[instruction]["opcode"]
         
-        rd = register[rd]
-        rs1= register[rs1]
-        imm=to_twos_complement(int(imm), 12)
+    rd = register[rd]
+    rs1= register[rs1]
+    imm=to_twos_complement(int(imm), 12)
+    if imm is None:
+        return
         
-        binary_instruction = imm[0:12]+ rs1+ funct3 + rd + opcode
+    binary_instruction = imm[0:12]+ rs1+ funct3 + rd + opcode
         
-        return binary_instruction
+    return binary_instruction
 
 
 
 
 def encode_s_type(instruction, rs1, imm,rs2):
+    if rs1 not in register or rs2 not in register:
+        print("PLS ENTER VALID REGISTER")
+        return
+    
     
     funct3 = s_type_instructions[instruction]["funct3"]
     opcode = s_type_instructions[instruction]["opcode"]
@@ -136,6 +158,8 @@ def encode_s_type(instruction, rs1, imm,rs2):
     rs1= register[rs1]
     rs2= register[rs2]
     imm=to_twos_complement(int(imm), 12)
+    if imm is None:
+        return
 
 
     binary_instruction = imm[0:7] + rs2+ rs1+ funct3 + imm[7:] + opcode
@@ -144,15 +168,22 @@ def encode_s_type(instruction, rs1, imm,rs2):
 
 
 def encode_j_type(instruction, rd, imm):
+    if rd not in register:
+        print("PLS ENTER VALID REGISTER")
 
     
     opcode = j_type_instructions[instruction]["opcode"]
     rd = register[rd]
     imm = to_twos_complement(int(imm), 21)
+    if imm is None:
+        return
     binary_instruction = imm[0:20] + rd + opcode
     return binary_instruction
 
 def encode_b_type(instruction, rd, rs1, val, label, counter):
+    if rd not in register or rs1 not in register:
+        print("PLS ENTER VALID REGISTER")
+        return
     funct3 = b_type_instructions[instruction]["funct3"]
     opcode = b_type_instructions[instruction]["opcode"]
 
@@ -186,29 +217,44 @@ def main():
             continue
         
         operation = instr[0]
+        if operation not in r_type_instructions and operation not in i_type_instructions and operation not in s_type_instructions and operation not in j_type_instructions and operation not in b_type_instructions:
+            print("Error: Wrong instruction")
         
         if operation in r_type_instructions:
+            if len(binary_instructions)!=4:
+                print("Error: Wrong number of arguments")
+                return
             rd, rs1, rs2 = instr[1], instr[2], instr[3]
             binary_instructions.append(encode_r_type(operation, rd, rs1, rs2))
         
         elif operation in i_type_instructions:
+            if len(binary_instructions)!=4:
+                print("Error: Wrong number of arguments")
+                return
             rd, rs1, imm = instr[1], instr[2], instr[3]
             binary_instructions.append(encode_i_type(operation, rd, rs1, imm))
         
         elif operation in s_type_instructions:
+            if len(binary_instructions)!=4:
+                print("Error: Wrong number of arguments")
+                return
             rs2, imm, rs1 = instr[1], instr[2], instr[3]
             binary_instructions.append(encode_s_type(operation, rs1, imm, rs2))
         
         elif operation in j_type_instructions:
+            if len(binary_instructions)!=4:
+                print("Error: Wrong number of arguments")
+                return
             rd, imm = instr[1], instr[2]
             binary_instructions.append(encode_j_type(operation, rd, imm))
         
         elif operation in b_type_instructions:
+            if len(binary_instructions)!=4:
+                print("Error: Wrong number of arguments")
+                return
             rd, rs1, val = instr[1], instr[2], instr[3]
             binary_instructions.append(encode_b_type(operation, rd, rs1, val, labels, counter))
         
-        else:
-            print(f"Error: Unsupported instruction '{operation}'")
     
     for binary in binary_instructions:
         print(binary)
