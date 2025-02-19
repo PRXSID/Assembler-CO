@@ -81,7 +81,8 @@ def read_instructions(filename="input2.txt"):
                 if not line:
                     continue  
 
-                parts = line.replace(',', ' ').replace(')', " ").replace('(', " ").split()
+                parts = line.replace(',', ' ').replace(')', '').replace('(', ' ').split()
+
                 instructions.append(parts)
         print (instructions)
 
@@ -108,9 +109,6 @@ def to_twos_complement(value, bit_width):
 
 
 def encode_r_type(instruction, rd, rs1, rs2):
-    if rd not in register or rs1 not in register or rs2 not in register:
-        print("PLS ENTER VALID REGISTER")
-        return
     
     
     funct7 = r_type_instructions[instruction]["funct7"]
@@ -126,20 +124,17 @@ def encode_r_type(instruction, rd, rs1, rs2):
     return binary_instruction
 
 def encode_i_type(instruction, rd, rs1, imm):
-    if rd not in register or rs1 not in register:
-        print("PLS ENTER VALID REGISTER")
-        return
-    
     funct3 = i_type_instructions[instruction]["funct3"]
     opcode = i_type_instructions[instruction]["opcode"]
-        
+       
     rd = register[rd]
-    rs1= register[rs1]
+    rs1_= register[rs1]
+    
     imm=to_twos_complement(int(imm), 12)
     if imm is None:
         return
-        
-    binary_instruction = imm[0:12]+ rs1+ funct3 + rd + opcode
+    
+    binary_instruction = imm[0:12]+ rs1_+ funct3 + rd + opcode
         
     return binary_instruction
 
@@ -147,10 +142,6 @@ def encode_i_type(instruction, rd, rs1, imm):
 
 
 def encode_s_type(instruction, rs1, imm,rs2):
-    if rs1 not in register or rs2 not in register:
-        print("PLS ENTER VALID REGISTER")
-        return
-    
     
     funct3 = s_type_instructions[instruction]["funct3"]
     opcode = s_type_instructions[instruction]["opcode"]
@@ -168,9 +159,6 @@ def encode_s_type(instruction, rs1, imm,rs2):
 
 
 def encode_j_type(instruction, rd, imm):
-    if rd not in register:
-        print("PLS ENTER VALID REGISTER")
-
     
     opcode = j_type_instructions[instruction]["opcode"]
     rd = register[rd]
@@ -181,9 +169,6 @@ def encode_j_type(instruction, rd, imm):
     return binary_instruction
 
 def encode_b_type(instruction, rd, rs1, val, label, counter):
-    if rd not in register or rs1 not in register:
-        print("PLS ENTER VALID REGISTER")
-        return
     funct3 = b_type_instructions[instruction]["funct3"]
     opcode = b_type_instructions[instruction]["opcode"]
 
@@ -196,6 +181,8 @@ def encode_b_type(instruction, rd, rs1, val, label, counter):
         print(counter)
     else:
         imm = (to_twos_complement(int(val), 13))
+    if imm is None:
+        return
 
     imm_12 = imm[0]
     imm_10_5 = imm[2:8]
@@ -225,8 +212,12 @@ def main():
             binary_instructions.append(encode_r_type(operation, rd, rs1, rs2))
         
         elif operation in i_type_instructions:
-            rd, rs1, imm = instr[1], instr[2], instr[3]
+            if operation == "lw":  
+                rd, imm, rs1 = instr[1], instr[2], instr[3]
+            else:
+                rd, rs1, imm = instr[1], instr[2], instr[3]
             binary_instructions.append(encode_i_type(operation, rd, rs1, imm))
+
         
         elif operation in s_type_instructions:
             rs2, imm, rs1 = instr[1], instr[2], instr[3]
