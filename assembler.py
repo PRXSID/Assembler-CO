@@ -62,7 +62,7 @@ register = {
     't6':   '11111',
 }
 
-def read_instructions(filename="input2.txt"):
+def read_instructions(filename):
     instructions = []
     labels = {}
 
