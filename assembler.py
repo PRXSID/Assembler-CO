@@ -82,9 +82,7 @@ def read_instructions(filename="input2.txt"):
                     continue  
 
                 parts = line.replace(',', ' ').replace(')', '').replace('(', ' ').split()
-
                 instructions.append(parts)
-        print (instructions)
 
         return instructions, labels
 
@@ -110,6 +108,7 @@ def to_twos_complement(value, bit_width):
 
 def encode_r_type(instruction, rd, rs1, rs2):
     
+    
     funct7 = r_type_instructions[instruction]["funct7"]
     funct3 = r_type_instructions[instruction]["funct3"]
     opcode = r_type_instructions[instruction]["opcode"]
@@ -123,7 +122,6 @@ def encode_r_type(instruction, rd, rs1, rs2):
     return binary_instruction
 
 def encode_i_type(instruction, rd, rs1, imm):
-    
     funct3 = i_type_instructions[instruction]["funct3"]
     opcode = i_type_instructions[instruction]["opcode"]
        
@@ -158,18 +156,14 @@ def encode_s_type(instruction, rs1, imm,rs2):
 
 
 def encode_j_type(instruction, rd, imm):
+    
     opcode = j_type_instructions[instruction]["opcode"]
     rd = register[rd]
     imm = to_twos_complement(int(imm), 21)
-    # if imm is None:
-    #     return
-    imm_20 = imm[0]                   
-    imm_10_1 = imm[10:0:-1]            
-    imm_11 = imm[11]                 
-    imm_19_12 = imm[19:11:-1]          
-    binary_instruction = imm_20 + imm_10_1 + imm_11 + imm_19_12 + rd + opcode
+    if imm is None:
+        return
+    binary_instruction = imm[0:20] + rd + opcode
     return binary_instruction
-
 
 def encode_b_type(instruction, rd, rs1, val, label, counter):
     funct3 = b_type_instructions[instruction]["funct3"]
@@ -180,10 +174,9 @@ def encode_b_type(instruction, rd, rs1, val, label, counter):
 
     if val in label:
         imm = (to_twos_complement(4*((int(label[val]) - int(counter+1))), 13))
-        print(label[val])
-        print(counter)
     else:
         imm = (to_twos_complement(int(val), 13))
+
     if imm is None:
         return
 
@@ -198,7 +191,8 @@ def encode_b_type(instruction, rd, rs1, val, label, counter):
     return binary_instruction
 
 def main():
-    filename = "input2.txt"
+    filename = input("Enter input filename: ")
+    out = input("Enter output filename: ")
     instructions, labels = read_instructions(filename)
     binary_instructions = []
     
@@ -234,7 +228,7 @@ def main():
             rd, rs1, val = instr[1], instr[2], instr[3]
             binary_instructions.append(encode_b_type(operation, rd, rs1, val, labels, counter))
         
-    
-    for binary in binary_instructions:
-        print(binary)
+    with open(out,'w') as f:
+        for binary in binary_instructions:
+            f.write(f"{binary}\n")
 main()
