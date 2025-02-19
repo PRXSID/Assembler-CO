@@ -221,37 +221,22 @@ def main():
             print("Error: Wrong instruction")
         
         if operation in r_type_instructions:
-            if len(binary_instructions)!=4:
-                print("Error: Wrong number of arguments")
-                return
             rd, rs1, rs2 = instr[1], instr[2], instr[3]
             binary_instructions.append(encode_r_type(operation, rd, rs1, rs2))
         
         elif operation in i_type_instructions:
-            if len(binary_instructions)!=4:
-                print("Error: Wrong number of arguments")
-                return
             rd, rs1, imm = instr[1], instr[2], instr[3]
             binary_instructions.append(encode_i_type(operation, rd, rs1, imm))
         
         elif operation in s_type_instructions:
-            if len(binary_instructions)!=4:
-                print("Error: Wrong number of arguments")
-                return
             rs2, imm, rs1 = instr[1], instr[2], instr[3]
             binary_instructions.append(encode_s_type(operation, rs1, imm, rs2))
         
         elif operation in j_type_instructions:
-            if len(binary_instructions)!=4:
-                print("Error: Wrong number of arguments")
-                return
             rd, imm = instr[1], instr[2]
             binary_instructions.append(encode_j_type(operation, rd, imm))
         
         elif operation in b_type_instructions:
-            if len(binary_instructions)!=4:
-                print("Error: Wrong number of arguments")
-                return
             rd, rs1, val = instr[1], instr[2], instr[3]
             binary_instructions.append(encode_b_type(operation, rd, rs1, val, labels, counter))
         
