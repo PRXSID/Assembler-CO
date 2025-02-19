@@ -1,4 +1,3 @@
-
 r_type_instructions = {
     "add": {"funct7": "0000000", "funct3": "000", "opcode": "0110011"},
     "sub": {"funct7": "0100000", "funct3": "000", "opcode": "0110011"},
@@ -236,7 +235,7 @@ def main():
         if operation in r_type_instructions:
             if len(instr) != 4:
                 error_line = counter + 1
-                break
+                return error_line
             rd, rs1, rs2 = instr[1], instr[2], instr[3]
             if not all(validate_register(reg, counter + 1) for reg in (rd, rs1, rs2)):
                 error_line = counter + 1
@@ -247,7 +246,7 @@ def main():
             if operation == "lw":
                 if len(instr) != 4 or syntax_error(instr) == 0:
                     error_line = counter + 1
-                    break
+                    return error_line
                 rd, imm, rs1 = instr[1], instr[2], instr[3]
                 if not all(validate_register(reg, counter + 1) for reg in (rd, rs1)):
                     error_line = counter + 1
@@ -255,7 +254,7 @@ def main():
             else:
                 if len(instr) != 4:
                     error_line = counter + 1
-                    break
+                    return error_line
                 rd, rs1, imm = instr[1], instr[2], instr[3]
                 if not all(validate_register(reg, counter + 1) for reg in (rd, rs1)):
                     error_line = counter + 1
@@ -264,9 +263,8 @@ def main():
         
         elif operation in s_type_instructions:
             if len(instr) != 4 or syntax_error(instr) == 0:
-                print(instr)
                 error_line = counter + 1
-                break
+                return error_line
             rs2, imm, rs1 = instr[1], instr[2], instr[3]
             if not all(validate_register(reg, counter + 1) for reg in (rs1, rs2)):
                 error_line = counter + 1
@@ -276,7 +274,7 @@ def main():
         elif operation in j_type_instructions:
             if len(instr) != 3:
                 error_line = counter + 1
-                break
+                return error_line
             rd, val = instr[1], instr[2]
             if not validate_register(rd, counter + 1):
                 error_line = counter + 1
@@ -286,7 +284,7 @@ def main():
         elif operation in b_type_instructions:
             if len(instr) != 4:
                 error_line = counter + 1
-                break
+                return error_line
             rd, rs1, val = instr[1], instr[2], instr[3]
             if not all(validate_register(reg, counter + 1) for reg in (rd, rs1)):
                 error_line = counter + 1
