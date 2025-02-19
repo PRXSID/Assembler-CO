@@ -110,7 +110,6 @@ def to_twos_complement(value, bit_width):
 
 def encode_r_type(instruction, rd, rs1, rs2):
     
-    
     funct7 = r_type_instructions[instruction]["funct7"]
     funct3 = r_type_instructions[instruction]["funct3"]
     opcode = r_type_instructions[instruction]["opcode"]
@@ -124,6 +123,7 @@ def encode_r_type(instruction, rd, rs1, rs2):
     return binary_instruction
 
 def encode_i_type(instruction, rd, rs1, imm):
+    
     funct3 = i_type_instructions[instruction]["funct3"]
     opcode = i_type_instructions[instruction]["opcode"]
        
@@ -152,7 +152,6 @@ def encode_s_type(instruction, rs1, imm,rs2):
     if imm is None:
         return
 
-
     binary_instruction = imm[0:7] + rs2+ rs1+ funct3 + imm[7:] + opcode
 
     return binary_instruction
@@ -162,8 +161,8 @@ def encode_j_type(instruction, rd, imm):
     opcode = j_type_instructions[instruction]["opcode"]
     rd = register[rd]
     imm = to_twos_complement(int(imm), 21)
-    if imm is None:
-        return
+    # if imm is None:
+    #     return
     imm_20 = imm[0]                   
     imm_10_1 = imm[10:0:-1]            
     imm_11 = imm[11]                 
